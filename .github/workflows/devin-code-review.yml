@@ -20,7 +20,7 @@ jobs:
             --header 'Authorization: Bearer <token>' \
             --header 'Content-Type: application/json' \
             --data '{
-              "prompt": "Review the code diff against rules using this playbook",
+              "prompt": "!eval_rules -- review the code diff against rules using playbook",
               "idempotent": true
             }'
 
