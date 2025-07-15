@@ -20,7 +20,7 @@ jobs:
             --header 'Authorization: Bearer <token>' \
             --header 'Content-Type: application/json' \
             --data '{
-              "prompt": "!eval_rules -- review the code diff against rules using playbook",
+              "prompt": "!eval_rules -- Follow the CI/CD Guidelines Assessment Playbook in devin/devin_playbook.md to evaluate code changes against .windsurf/rules/ guidelines. Analyze only the diff (not entire repo) and report violations in priority order: security vulnerabilities, production stability risks, data integrity issues, performance impacts, maintainability concerns, code consistency.",
               "idempotent": true
             }'
 
