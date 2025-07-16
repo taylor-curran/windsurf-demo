@@ -1,0 +1,35 @@
+name: Code Test CI
+
+on: 
+  push:
+  pull_request:
+
+jobs:
+  devin-code-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for diff analysis
+
+      - name: Run code review
+        run: |
+          # For PRs, compare against the base branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            DIFF_OUTPUT=$(git diff origin/${{ github.base_ref }}...HEAD)
+          else
+            DIFF_OUTPUT=$(git diff HEAD~1)
+          fi
+          
+          curl --request POST \
+            --url https://api.devin.ai/v1/sessions \
+            --header 'Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}' \
+            --header 'Content-Type: application/json' \
+            --data @- << EOF
+          {
+            "prompt": "!ask What code files do you have access to? Are you able to get the diff associated with ${{ github.ref }}? Able to see this diff?: ${DIFF_OUTPUT}",
+            "idempotent": false
+          }
+          EOF
+

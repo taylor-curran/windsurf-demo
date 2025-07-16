@@ -21,6 +21,6 @@ jobs:
             --header 'Content-Type: application/json' \
             --data '{
               "prompt": "!eval_rules -- review the code diff against rules using playbook for repo taylor-curran/windsurf-demo",
-              "idempotent": true
+              "idempotent": false
             }'
 
