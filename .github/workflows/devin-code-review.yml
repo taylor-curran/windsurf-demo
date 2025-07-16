@@ -20,7 +20,7 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}' \
             --header 'Content-Type: application/json' \
             --data '{
-              "prompt": "!eval_rules -- review the code diff against rules using playbook",
+              "prompt": "!eval_rules -- review the code diff against rules using playbook for repo taylor-curran/windsurf-demo",
               "idempotent": true
             }'
 
