@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  code-review:
+  devin-code-review:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
