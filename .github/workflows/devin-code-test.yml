@@ -22,14 +22,15 @@ jobs:
             DIFF_OUTPUT=$(git diff HEAD~1)
           fi
           
+          # Escape the diff content for JSON
+          ESCAPED_DIFF=$(echo "$DIFF_OUTPUT" | sed 's/\\/\\\\/g; s/"/\\"/g; s/$/\\n/' | tr -d '\n')
+          
           curl --request POST \
             --url https://api.devin.ai/v1/sessions \
             --header 'Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}' \
             --header 'Content-Type: application/json' \
-            --data @- << EOF
-          {
-            "prompt": "!ask What code files do you have access to? Are you able to get the diff associated with ${{ github.ref }}? Able to see this diff?: ${DIFF_OUTPUT}",
-            "idempotent": false
-          }
-          EOF
+            --data "{
+              \"prompt\": \"!ask Review this code diff: ${ESCAPED_DIFF}\",
+              \"idempotent\": false
+            }"
 
