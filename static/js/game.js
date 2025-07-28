@@ -126,7 +126,7 @@ function restartGame() {
         return false;
     }
     
-    if (!gameState || typeof gameState !== 'object') {
+    if (!gameState || typeof gameState !== 'object' || typeof gameState.gameOver !== 'boolean') {
         console.error('Invalid game state detected');
         return false;
     }
@@ -143,11 +143,16 @@ function restartGame() {
     }
     
     try {
-        // Sanitize and reset game state
-        gameOverScreen.classList.remove('visible');
+        // Sanitize and validate constants with safe fallbacks
+        const safeWorldSize = typeof WORLD_SIZE === 'number' && WORLD_SIZE > 0 ? WORLD_SIZE : 2000;
+        const safeStartingScore = typeof STARTING_SCORE === 'number' && STARTING_SCORE > 0 ? STARTING_SCORE : 10;
         
-        const sanitizedScore = Math.max(0, Math.min(STARTING_SCORE, Number(STARTING_SCORE) || 100));
-        const sanitizedPosition = Math.max(0, Math.min(WORLD_SIZE, WORLD_SIZE / 2));
+        // Sanitize position and score values
+        const sanitizedPosition = Math.max(0, Math.min(safeWorldSize, safeWorldSize / 2));
+        const sanitizedScore = Math.max(0, Math.min(safeStartingScore, safeStartingScore));
+        
+        // Reset game state
+        gameOverScreen.classList.remove('visible');
         
         gameState.gameOver = false;
         gameState.finalScore = 0;
