@@ -3,6 +3,7 @@ import { initRenderer, resizeCanvas, drawGame, drawMinimap, updateLeaderboard } 
 import { updatePlayer, updateAI, initEntities, handlePlayerSplit } from './entities.js';
 import { handleFoodCollisions, handlePlayerAICollisions, handleAIAICollisions, respawnEntities } from './collisions.js';
 import { initUI } from './ui.js';
+import { WORLD_SIZE, STARTING_SCORE } from './config.js';
 
 function setupInputHandlers() {
     const canvas = document.getElementById('gameCanvas');
@@ -31,6 +32,14 @@ function checkCollisions() {
     respawnEntities();
 }
 
+function showGameOverScreen() {
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const finalScoreElement = document.getElementById('final-score-value');
+    
+    finalScoreElement.textContent = gameState.finalScore;
+    gameOverScreen.classList.add('visible');
+}
+
 function verifyGameState() {
     console.log('Verifying game state...');
     console.log('Player cells:', gameState.playerCells);
@@ -49,12 +58,16 @@ function verifyGameState() {
 }
 
 function gameLoop() {
-    updatePlayer();
-    updateAI();
-    checkCollisions();
-    updateLeaderboard();
-    drawGame();
-    drawMinimap();
+    if (gameState.gameOver) {
+        showGameOverScreen();
+    } else {
+        updatePlayer();
+        updateAI();
+        checkCollisions();
+        updateLeaderboard();
+        drawGame();
+        drawMinimap();
+    }
     requestAnimationFrame(gameLoop);
 }
 
@@ -102,6 +115,70 @@ async function initGame() {
         console.error('Error initializing game:', error);
     }
 }
+
+let lastRestartTime = 0;
+const RESTART_COOLDOWN_MS = 1000; // 1 second cooldown
+
+function restartGame() {
+    const currentTime = Date.now();
+    if (currentTime - lastRestartTime < RESTART_COOLDOWN_MS) {
+        console.warn('Restart rate limited - please wait before trying again');
+        return false;
+    }
+    
+    if (!gameState || typeof gameState !== 'object' || typeof gameState.gameOver !== 'boolean') {
+        console.error('Invalid game state detected');
+        return false;
+    }
+    
+    if (!gameState.gameOver) {
+        console.warn('Restart attempted while game is still active');
+        return false;
+    }
+    
+    const gameOverScreen = document.getElementById('game-over-screen');
+    if (!gameOverScreen) {
+        console.error('Game over screen element not found');
+        return false;
+    }
+    
+    try {
+        // Sanitize and validate constants with safe fallbacks
+        const safeWorldSize = typeof WORLD_SIZE === 'number' && WORLD_SIZE > 0 ? WORLD_SIZE : 2000;
+        const safeStartingScore = typeof STARTING_SCORE === 'number' && STARTING_SCORE > 0 ? STARTING_SCORE : 10;
+        
+        // Sanitize position and score values
+        const sanitizedPosition = Math.max(0, Math.min(safeWorldSize, safeWorldSize / 2));
+        const sanitizedScore = Math.max(0, Math.min(safeStartingScore, safeStartingScore));
+        
+        // Reset game state
+        gameOverScreen.classList.remove('visible');
+        
+        gameState.gameOver = false;
+        gameState.finalScore = 0;
+        gameState.playerCells = [{
+            x: sanitizedPosition,
+            y: sanitizedPosition,
+            score: sanitizedScore,
+            velocityX: 0,
+            velocityY: 0
+        }];
+        
+        initEntities();
+        lastRestartTime = currentTime;
+        
+        console.log('Game restarted successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('Error during game restart:', error);
+        return false;
+    }
+}
+
+window.restartGame = function() {
+    return restartGame();
+};
 
 // Start the game when the DOM is loaded
 if (document.readyState === 'loading') {
