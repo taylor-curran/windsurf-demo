@@ -116,34 +116,64 @@ async function initGame() {
     }
 }
 
+let lastRestartTime = 0;
+const RESTART_COOLDOWN_MS = 1000; // 1 second cooldown
+
 function restartGame() {
+    const currentTime = Date.now();
+    if (currentTime - lastRestartTime < RESTART_COOLDOWN_MS) {
+        console.warn('Restart rate limited - please wait before trying again');
+        return false;
+    }
+    
+    if (!gameState || typeof gameState !== 'object') {
+        console.error('Invalid game state detected');
+        return false;
+    }
+    
     if (!gameState.gameOver) {
         console.warn('Restart attempted while game is still active');
-        return;
+        return false;
     }
     
     const gameOverScreen = document.getElementById('game-over-screen');
     if (!gameOverScreen) {
         console.error('Game over screen element not found');
-        return;
+        return false;
     }
     
-    gameOverScreen.classList.remove('visible');
-    
-    gameState.gameOver = false;
-    gameState.finalScore = 0;
-    gameState.playerCells = [{
-        x: WORLD_SIZE / 2,
-        y: WORLD_SIZE / 2,
-        score: STARTING_SCORE,
-        velocityX: 0,
-        velocityY: 0
-    }];
-    
-    initEntities();
+    try {
+        // Sanitize and reset game state
+        gameOverScreen.classList.remove('visible');
+        
+        const sanitizedScore = Math.max(0, Math.min(STARTING_SCORE, Number(STARTING_SCORE) || 100));
+        const sanitizedPosition = Math.max(0, Math.min(WORLD_SIZE, WORLD_SIZE / 2));
+        
+        gameState.gameOver = false;
+        gameState.finalScore = 0;
+        gameState.playerCells = [{
+            x: sanitizedPosition,
+            y: sanitizedPosition,
+            score: sanitizedScore,
+            velocityX: 0,
+            velocityY: 0
+        }];
+        
+        initEntities();
+        lastRestartTime = currentTime;
+        
+        console.log('Game restarted successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('Error during game restart:', error);
+        return false;
+    }
 }
 
-window.restartGame = restartGame;
+window.restartGame = function() {
+    return restartGame();
+};
 
 // Start the game when the DOM is loaded
 if (document.readyState === 'loading') {
