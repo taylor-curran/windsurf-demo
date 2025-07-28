@@ -116,8 +116,18 @@ async function initGame() {
     }
 }
 
-window.restartGame = function() {
+function restartGame() {
+    if (!gameState.gameOver) {
+        console.warn('Restart attempted while game is still active');
+        return;
+    }
+    
     const gameOverScreen = document.getElementById('game-over-screen');
+    if (!gameOverScreen) {
+        console.error('Game over screen element not found');
+        return;
+    }
+    
     gameOverScreen.classList.remove('visible');
     
     gameState.gameOver = false;
@@ -131,7 +141,9 @@ window.restartGame = function() {
     }];
     
     initEntities();
-};
+}
+
+window.restartGame = restartGame;
 
 // Start the game when the DOM is loaded
 if (document.readyState === 'loading') {
