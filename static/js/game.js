@@ -3,6 +3,7 @@ import { initRenderer, resizeCanvas, drawGame, drawMinimap, updateLeaderboard } 
 import { updatePlayer, updateAI, initEntities, handlePlayerSplit } from './entities.js';
 import { handleFoodCollisions, handlePlayerAICollisions, handleAIAICollisions, respawnEntities } from './collisions.js';
 import { initUI } from './ui.js';
+import { WORLD_SIZE, STARTING_SCORE } from './config.js';
 
 function setupInputHandlers() {
     const canvas = document.getElementById('gameCanvas');
@@ -31,6 +32,14 @@ function checkCollisions() {
     respawnEntities();
 }
 
+function showGameOverScreen() {
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const finalScoreElement = document.getElementById('final-score-value');
+    
+    finalScoreElement.textContent = gameState.finalScore;
+    gameOverScreen.classList.add('visible');
+}
+
 function verifyGameState() {
     console.log('Verifying game state...');
     console.log('Player cells:', gameState.playerCells);
@@ -49,12 +58,16 @@ function verifyGameState() {
 }
 
 function gameLoop() {
-    updatePlayer();
-    updateAI();
-    checkCollisions();
-    updateLeaderboard();
-    drawGame();
-    drawMinimap();
+    if (gameState.gameOver) {
+        showGameOverScreen();
+    } else {
+        updatePlayer();
+        updateAI();
+        checkCollisions();
+        updateLeaderboard();
+        drawGame();
+        drawMinimap();
+    }
     requestAnimationFrame(gameLoop);
 }
 
@@ -102,6 +115,23 @@ async function initGame() {
         console.error('Error initializing game:', error);
     }
 }
+
+window.restartGame = function() {
+    const gameOverScreen = document.getElementById('game-over-screen');
+    gameOverScreen.classList.remove('visible');
+    
+    gameState.gameOver = false;
+    gameState.finalScore = 0;
+    gameState.playerCells = [{
+        x: WORLD_SIZE / 2,
+        y: WORLD_SIZE / 2,
+        score: STARTING_SCORE,
+        velocityX: 0,
+        velocityY: 0
+    }];
+    
+    initEntities();
+};
 
 // Start the game when the DOM is loaded
 if (document.readyState === 'loading') {
