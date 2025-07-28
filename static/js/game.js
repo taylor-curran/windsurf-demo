@@ -117,6 +117,11 @@ async function initGame() {
 }
 
 function restartGame() {
+    if (!gameState || typeof gameState.gameOver !== 'boolean') {
+        console.error('Invalid game state detected');
+        return;
+    }
+    
     if (!gameState.gameOver) {
         console.warn('Restart attempted while game is still active');
         return;
@@ -128,14 +133,17 @@ function restartGame() {
         return;
     }
     
+    const safeWorldSize = typeof WORLD_SIZE === 'number' && WORLD_SIZE > 0 ? WORLD_SIZE : 2000;
+    const safeStartingScore = typeof STARTING_SCORE === 'number' && STARTING_SCORE > 0 ? STARTING_SCORE : 10;
+    
     gameOverScreen.classList.remove('visible');
     
     gameState.gameOver = false;
     gameState.finalScore = 0;
     gameState.playerCells = [{
-        x: WORLD_SIZE / 2,
-        y: WORLD_SIZE / 2,
-        score: STARTING_SCORE,
+        x: safeWorldSize / 2,
+        y: safeWorldSize / 2,
+        score: safeStartingScore,
         velocityX: 0,
         velocityY: 0
     }];
