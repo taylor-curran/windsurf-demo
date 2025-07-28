@@ -79,22 +79,16 @@ export function handlePlayerAICollisions() {
         }
     });
 
+    const remainingCells = gameState.playerCells.filter((_, index) => !playerCellsToRemove.has(index));
+    if (remainingCells.length === 0) {
+        gameState.finalScore = Math.floor(gameState.playerCells.reduce((sum, cell) => sum + cell.score, 0));
+        gameState.gameOver = true;
+    }
+
     // Remove consumed player cells (in reverse order)
     [...playerCellsToRemove].sort((a, b) => b - a).forEach(index => {
         gameState.playerCells.splice(index, 1);
     });
-
-    // Respawn player if all cells are gone
-    if (gameState.playerCells.length === 0) {
-        const safePos = findSafeSpawnLocation(gameState);
-        gameState.playerCells.push({
-            x: safePos.x,
-            y: safePos.y,
-            score: STARTING_SCORE,
-            velocityX: 0,
-            velocityY: 0
-        });
-    }
 }
 
 export function handleAIAICollisions() {
@@ -163,8 +157,8 @@ export function respawnEntities() {
         gameState.aiPlayers.push(newAI);
     }
 
-    // Ensure player has at least one cell
-    if (gameState.playerCells.length === 0) {
+    // Ensure player has at least one cell (only if not in game over state)
+    if (gameState.playerCells.length === 0 && !gameState.gameOver) {
         const safePos = findSafeSpawnLocation(gameState);
         gameState.playerCells.push({
             x: safePos.x,
