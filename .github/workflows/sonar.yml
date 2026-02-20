@@ -33,6 +33,10 @@ jobs:
             --header 'Authorization: Bearer ${{ secrets.DEVIN_API_KEY }}' \
             --header 'Content-Type: application/json' \
             --data '{
+              "mode": "advanced",
               "prompt": "!sonar-remediation -- Fix the high severity vulnerabilities using SonarQube MC @${{ github.repository }}. Git info: commit SHA ${{ github.sha }}, ref ${{ github.ref }}, branch ${{ github.ref_name }}, event ${{ github.event_name }}${{ github.event_name == 'pull_request' && format(', PR #{0} from {1} to {2}', github.event.pull_request.number, github.head_ref, github.base_ref) || '' }} then please make fixes to the code and create a PR",
               "idempotent": false
+              "batch": {
+                "enabled": true
+              }
             }'
